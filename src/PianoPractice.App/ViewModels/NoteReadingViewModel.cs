@@ -257,12 +257,15 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
             .ToList();
 
         TroubleNotes.Clear();
+        var reference = CardPicker.ReferenceMs(_stats.Data);
         var trouble = _session.Deck
             .Select(c => (Card: c, Stats: _stats.Data.For(c)))
             .Where(x => x.Stats is { Attempts: > 0 })
-            .OrderByDescending(x => CardPicker.Weight(x.Stats))
+            .Select(x => (x.Card, x.Stats, Weight: CardPicker.Weight(x.Stats, reference)))
+            .OrderByDescending(x => x.Weight)
             .Take(5)
-            .Where(x => CardPicker.Weight(x.Stats) > 2);
+            .Where(x => x.Weight > 2.5)
+            .Select(x => (x.Card, x.Stats));
         foreach (var (card, stats) in trouble)
         {
             TroubleNotes.Add($"{card}  ·  {stats!.Correct}/{stats.Attempts} right  ·  {stats.AverageMs / 1000:F1} s");

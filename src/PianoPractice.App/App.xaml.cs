@@ -38,7 +38,8 @@ public partial class App : Application
     {
         var settings = GetService<SettingsStore>().Current;
         var midi = GetService<IMidiService>();
-        midi.AutoConnect(settings.MidiInput, settings.MidiOutput);
+        if (settings.MidiChosenManually) midi.Connect(settings.MidiInput, settings.MidiOutput);
+        else midi.AutoConnect(settings.MidiInput, settings.MidiOutput);
 
         _window = new MainWindow();
         _window.Closed += (_, _) => midi.Dispose();

@@ -77,7 +77,7 @@ public sealed partial class SettingsViewModel : ObservableObject, IDisposable
         if (input == _midi.InputName && output == _midi.OutputName) return;
 
         _midi.Connect(input, output);
-        _settings.Update(s => s with { MidiInput = input, MidiOutput = output });
+        _settings.Update(s => s with { MidiInput = input, MidiOutput = output, MidiChosenManually = true });
     }
 
     /// <summary>Plays a short C major arpeggio on the output to check the connection.</summary>

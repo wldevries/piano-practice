@@ -87,6 +87,32 @@ public class CardPickerTests
     }
 
     [Fact]
+    public void Slowness_is_relative_to_the_players_own_pace()
+    {
+        // A beginner averaging ~6 s: 10 s notes must still stand out from 3 s notes.
+        var stats = new NoteReadingStats();
+        var deck = NoteReadingDeck.Build(new NoteReadingOptions());
+        double[] times = [3000, 5000, 6000, 6300, 6800, 8300, 9800, 10000, 2800];
+        for (var i = 0; i < deck.Count; i++) stats.GetOrAdd(deck[i]).Record(true, times[i], DateTimeOffset.UnixEpoch);
+
+        var reference = CardPicker.ReferenceMs(stats);
+        Assert.Equal(6300, reference);
+        Assert.True(CardPicker.Weight(stats.For(deck[7]), reference) > CardPicker.Weight(stats.For(deck[0]), reference) + 0.5);
+
+        // With a fixed 1.5 s bar both would be capped as "maximally slow".
+        Assert.Equal(CardPicker.Weight(stats.For(deck[7])), CardPicker.Weight(stats.For(deck[2])));
+    }
+
+    [Fact]
+    public void Reference_never_drops_below_the_comfortable_pace()
+    {
+        var stats = new NoteReadingStats();
+        foreach (var card in NoteReadingDeck.Build(new NoteReadingOptions())) stats.GetOrAdd(card).Record(true, 700, DateTimeOffset.UnixEpoch);
+        Assert.Equal(CardPicker.ComfortableMs, CardPicker.ReferenceMs(stats));
+        Assert.Equal(CardPicker.ComfortableMs, CardPicker.ReferenceMs(new NoteReadingStats()));
+    }
+
+    [Fact]
     public void Weak_cards_come_up_more_often()
     {
         var deck = NoteReadingDeck.Build(new NoteReadingOptions());

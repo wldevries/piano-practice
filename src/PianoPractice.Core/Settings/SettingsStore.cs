@@ -8,6 +8,12 @@ public sealed record AppSettings
     public string? MidiInput { get; init; }
     public string? MidiOutput { get; init; }
 
+    /// <summary>
+    /// True once the user picked devices in Settings: use exactly MidiInput/MidiOutput (null = none).
+    /// False: auto-connect, preferring those names, else anything that looks like a piano.
+    /// </summary>
+    public bool MidiChosenManually { get; init; }
+
     /// <summary>Key signature on the Live page, in fifths (-7..7).</summary>
     public int LiveKeyFifths { get; init; }
 
