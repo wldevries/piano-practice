@@ -93,6 +93,7 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Melody dictation, chord-quality ear training, rhythm drills
 - Built-in SoundFont synth (MeltySynth) for practising without the piano connected
 - Practice history and streaks dashboard
+- Note reading **landmarks** hint: on a mistake (or optionally always), show the nearest landmark note and the distance to it (e.g. "C5 + 2 steps"). Configurable landmark set; default C/G: C4, G4, C5, (F5), G5, C6 and bass F3, C3, C2. Wouter already reads via C and G. His first session's fastest notes were exactly C5 and G4, and the slowest were the furthest from them (E5, D5, B4). Possibly also a drill that only asks landmarks, then expands outward.
 - Measure Bluetooth latency against USB. It matters for timing scores in M5 flow mode.
 - Optional: replace DryWetMIDI's WinMM device layer with the Windows MIDI Services SDK (`Microsoft.Windows.Devices.Midi2`: multi-client, MIDI 2.0, richer device info). Not needed for anything so far.
 
