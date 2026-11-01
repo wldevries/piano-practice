@@ -193,16 +193,28 @@
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
-                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Per interval (all sessions, weakest first)" />
-                <ItemsControl ItemsSource="{x:Bind ViewModel.PerInterval}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="x:String">
-                            <TextBlock Text="{x:Bind}" Margin="0,2" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Mistakes this session" />
+                    <TextBlock Text="{x:Bind ViewModel.MistakeBreakdown, Mode=OneWay}" TextWrapping="Wrap" />
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.SessionMistakes}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{x:Bind}" Margin="0,1" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Per interval (all sessions, weakest first)" Margin="0,16,0,0" />
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.PerInterval}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{x:Bind}" Margin="0,2" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
         </Grid>
 
         <controls:PianoKeyboard

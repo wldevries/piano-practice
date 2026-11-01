@@ -37,13 +37,30 @@ public sealed record SessionSummary(
     public double Accuracy => Cards == 0 ? 0 : (double)Correct / Cards;
 }
 
+/// <summary>A wrong first answer, kept so patterns can be found later.</summary>
+/// <param name="ItemId">What was asked, e.g. "Ascending:7".</param>
+/// <param name="Kind">Exercise-specific category, e.g. "NearMiss".</param>
+/// <param name="Expected">e.g. "C4 → G4".</param>
+/// <param name="Given">e.g. "F#4 (TT)".</param>
+public sealed record Mistake(DateTimeOffset Time, string ItemId, string Kind, string Expected, string Given);
+
 /// <summary>Per-item statistics and session history of one exercise.</summary>
 public sealed class ExerciseStats
 {
+    public const int MaxMistakes = 5000;
+
     /// <summary>Stats per item id. (Named "Cards" for compatibility with the first stats files.)</summary>
     public Dictionary<string, CardStats> Cards { get; set; } = new();
 
     public List<SessionSummary> Sessions { get; set; } = new();
+
+    public List<Mistake> Mistakes { get; set; } = new();
+
+    public void AddMistake(Mistake mistake)
+    {
+        Mistakes.Add(mistake);
+        if (Mistakes.Count > MaxMistakes) Mistakes.RemoveRange(0, Mistakes.Count - MaxMistakes);
+    }
 
     public CardStats? For(string id) => Cards.GetValueOrDefault(id);
 

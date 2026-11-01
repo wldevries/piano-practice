@@ -343,7 +343,16 @@ public sealed partial class IntervalsViewModel : ObservableObject, IDisposable
                 break;
             case AnswerOutcome.Wrong:
             case AnswerOutcome.RetryWrong:
-                FeedbackText = $"✗  It was a {question.Item.ToString().ToLowerInvariant()}. Find the purple key.";
+                var why = outcome == AnswerOutcome.Wrong && !IsNameMode && _session.Mistakes.Count > 0
+                    ? Enum.Parse<IntervalMistakeKind>(_session.Mistakes[^1].Kind) switch
+                    {
+                        IntervalMistakeKind.NearMiss => "Close!  ",
+                        IntervalMistakeKind.WrongOctave => "Right note, wrong octave.  ",
+                        IntervalMistakeKind.WrongDirection => "Right size, wrong direction.  ",
+                        _ => "",
+                    }
+                    : "";
+                FeedbackText = $"✗  {why}It was a {question.Item.ToString().ToLowerInvariant()}. Find the purple key.";
                 HintText = SongHint(question);
                 break;
         }
@@ -413,9 +422,22 @@ public sealed partial class IntervalsViewModel : ObservableObject, IDisposable
                 : $"{item}  ·  {s.Correct}/{s.Attempts} right ({s.Accuracy:P0})");
         }
 
+        SessionMistakes.Clear();
+        var mistakes = _session.Mistakes;
+        MistakeBreakdown = mistakes.Count == 0
+            ? "No mistakes this session."
+            : string.Join("\n", mistakes
+                .GroupBy(m => Enum.Parse<IntervalMistakeKind>(m.Kind))
+                .OrderByDescending(g => g.Count())
+                .Select(g => $"{g.Count()} × {IntervalMistakes.Describe(g.Key)}"));
+        foreach (var m in mistakes) SessionMistakes.Add($"{m.Expected}   ·   you: {m.Given}");
+
         Highlights = [];
         Phase = IntervalsPhase.Summary;
     }
+
+    [ObservableProperty] public partial string MistakeBreakdown { get; set; } = "";
+    public ObservableCollection<string> SessionMistakes { get; } = [];
 
     [RelayCommand]
     private void Again() => Start();

@@ -92,12 +92,50 @@ public sealed class IntervalSession
         if (State == CardState.Waiting) _askedAt = _time.GetTimestamp();
     }
 
+    /// <summary>Wrong first answers of this session, in order.</summary>
+    public IReadOnlyList<Mistake> Mistakes => _mistakes;
+    private readonly List<Mistake> _mistakes = [];
+
     /// <summary>Play-back mode: a note played on the piano.</summary>
-    public AnswerOutcome Answer(Pitch played) =>
-        played == Current.Root ? AnswerOutcome.Ignored : Judge(played == Current.Target);
+    public AnswerOutcome Answer(Pitch played)
+    {
+        if (played == Current.Root) return AnswerOutcome.Ignored;
+        var outcome = Judge(played == Current.Target);
+        if (outcome == AnswerOutcome.Wrong)
+        {
+            var (kind, semis) = IntervalMistakes.Classify(Current, played, Items.Select(i => i.Semitones).ToHashSet());
+            AddMistake(kind, $"{NoteNames.WithOctave(played)} ({IntervalMistakes.SizeName(semis)})");
+        }
+        return outcome;
+    }
 
     /// <summary>Name mode: the interval size picked.</summary>
-    public AnswerOutcome AnswerName(int semitones) => Judge(semitones == Current.Item.Semitones);
+    public AnswerOutcome AnswerName(int semitones)
+    {
+        var outcome = Judge(semitones == Current.Item.Semitones);
+        if (outcome == AnswerOutcome.Wrong) AddMistake(IntervalMistakeKind.OtherInterval, IntervalMistakes.SizeName(semitones));
+        return outcome;
+    }
+
+    private void AddMistake(IntervalMistakeKind kind, string given)
+    {
+        var q = Current;
+        var mistake = new Mistake(
+            _time.GetUtcNow(),
+            q.Item.Id,
+            kind.ToString(),
+            $"{q.Item.Info.Short} {DirectionWord(q.Item.Direction)}: {NoteNames.WithOctave(q.Root)} → {NoteNames.WithOctave(q.Target)}",
+            given);
+        _mistakes.Add(mistake);
+        _store.Data.AddMistake(mistake);
+    }
+
+    private static string DirectionWord(IntervalDirection d) => d switch
+    {
+        IntervalDirection.Ascending => "up",
+        IntervalDirection.Descending => "down",
+        _ => "together",
+    };
 
     private AnswerOutcome Judge(bool correct)
     {

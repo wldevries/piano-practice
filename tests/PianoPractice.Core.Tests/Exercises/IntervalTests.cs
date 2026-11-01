@@ -123,6 +123,45 @@ public class IntervalTests
         Assert.Contains("P5 P8", summary.Options);
     }
 
+    private static readonly int[] FifthAndOctave = [7, 12];
+
+    private static IntervalQuestion Up(int semitones, int root = 60) =>
+        new(new IntervalItem(IntervalDirection.Ascending, semitones), new Pitch(root));
+
+    [Theory]
+    [InlineData(72, IntervalMistakeKind.OtherInterval, 12)] // played the octave instead of the fifth
+    [InlineData(66, IntervalMistakeKind.NearMiss, 6)]
+    [InlineData(68, IntervalMistakeKind.NearMiss, 8)]
+    [InlineData(55, IntervalMistakeKind.WrongOctave, -5)]   // G3 instead of G4
+    [InlineData(53, IntervalMistakeKind.WrongDirection, -7)]
+    [InlineData(63, IntervalMistakeKind.Other, 3)]
+    public void Wrong_keys_are_classified(int played, IntervalMistakeKind kind, int semis)
+        => Assert.Equal((kind, semis), IntervalMistakes.Classify(Up(7), new Pitch(played), FifthAndOctave));
+
+    [Fact]
+    public void Descending_mistakes_are_measured_downwards()
+    {
+        var q = new IntervalQuestion(new IntervalItem(IntervalDirection.Descending, 7), new Pitch(67)); // G4 down to C4
+        Assert.Equal((IntervalMistakeKind.OtherInterval, 12), IntervalMistakes.Classify(q, new Pitch(55), FifthAndOctave));
+        Assert.Equal((IntervalMistakeKind.NearMiss, 6), IntervalMistakes.Classify(q, new Pitch(61), FifthAndOctave));
+    }
+
+    [Fact]
+    public void Only_first_wrong_answer_is_recorded_as_mistake()
+    {
+        var (session, _, store) = Start();
+        var target = session.Current.Target;
+        session.Answer(target.Transpose(1));
+        session.Answer(target.Transpose(2)); // retry, not recorded
+        session.Answer(target);
+
+        var mistake = Assert.Single(session.Mistakes);
+        Assert.Equal(session.Current.Item.Id, mistake.ItemId);
+        Assert.Equal(nameof(IntervalMistakeKind.NearMiss), mistake.Kind);
+        Assert.Contains(NoteNames.WithOctave(target.Transpose(1)), mistake.Given);
+        Assert.Single(store.Data.Mistakes);
+    }
+
     [Fact]
     public void Empty_interval_set_is_rejected()
         => Assert.Throws<ArgumentException>(() => Start(new IntervalOptions { Intervals = [] }));
