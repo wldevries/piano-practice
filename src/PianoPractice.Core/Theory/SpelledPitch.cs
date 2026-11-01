@@ -54,4 +54,27 @@ public readonly record struct SpelledPitch(Letter Letter, int Accidental, int Oc
     };
 
     public override string ToString() => $"{Letter}{AccidentalSymbol}{Octave}";
+
+    /// <summary>Parses the <see cref="ToString"/> format: "C4", "F#4", "Bb3", "Ebb5", "Fx2".</summary>
+    public static bool TryParse(string text, out SpelledPitch pitch)
+    {
+        pitch = default;
+        if (string.IsNullOrEmpty(text) || !Enum.TryParse<Letter>(text[..1], out var letter)) return false;
+
+        var rest = text[1..];
+        var accidental = 0;
+        foreach (var (symbol, value) in new[] { ("bb", -2), ("b", -1), ("#", 1), ("x", 2) })
+        {
+            if (rest.StartsWith(symbol, StringComparison.Ordinal))
+            {
+                accidental = value;
+                rest = rest[symbol.Length..];
+                break;
+            }
+        }
+
+        if (!int.TryParse(rest, out var octave)) return false;
+        pitch = new SpelledPitch(letter, accidental, octave);
+        return true;
+    }
 }

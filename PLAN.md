@@ -64,7 +64,7 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Live page shows the held notes on the staff, spelled using the current key.
 - **Done when:** every key on the FP-10 shows up at the correct staff position.
 
-### M3: Note-reading flashcards
+### M3: Note-reading flashcards ✅
 - A note appears on the staff; you play it on the piano.
 - Options: clef (treble/bass/both), range, naturals only or with accidentals, key signature, and whether octave must match.
 - Feedback: green or red, the correct key flashed on the keyboard, and reaction time.

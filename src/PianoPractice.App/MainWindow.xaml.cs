@@ -27,7 +27,20 @@ public sealed partial class MainWindow : Window
     {
         InitializeComponent();
         AppWindow.Resize(new SizeInt32(1400, 900));
-        Nav.SelectedItem = Nav.MenuItems[0];
+        Nav.Loaded += (_, _) => Nav.SelectedItem = StartItem();
+    }
+
+    private NavigationViewItem StartItem()
+    {
+#if DEBUG
+        // Dev aid: PIANOPRACTICE_START_PAGE=NoteReading opens that page on launch.
+        if (Environment.GetEnvironmentVariable("PIANOPRACTICE_START_PAGE") is { Length: > 0 } startTag
+            && Nav.MenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => (string)i.Tag == startTag) is { } item)
+        {
+            return item;
+        }
+#endif
+        return (NavigationViewItem)Nav.MenuItems[0];
     }
 
     public ShellViewModel Shell { get; } = App.GetService<ShellViewModel>();

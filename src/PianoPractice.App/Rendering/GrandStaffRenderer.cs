@@ -74,7 +74,7 @@ public sealed class GrandStaffRenderer : IDisposable
 
         // Chord: split across the staves, laid out per staff, drawn at a shared x.
         var byClef = notes
-            .GroupBy(n => StaffPosition.ClefFor(n.Pitch.Pitch, splitMidi))
+            .GroupBy(n => n.Clef ?? StaffPosition.ClefFor(n.Pitch.Pitch, splitMidi))
             .ToDictionary(g => g.Key, g => g.ToList());
         var layouts = byClef.ToDictionary(
             kv => kv.Key,

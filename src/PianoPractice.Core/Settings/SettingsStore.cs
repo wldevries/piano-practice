@@ -1,4 +1,5 @@
 using System.Text.Json;
+using PianoPractice.Core.Exercises.NoteReading;
 
 namespace PianoPractice.Core.Settings;
 
@@ -9,6 +10,8 @@ public sealed record AppSettings
 
     /// <summary>Key signature on the Live page, in fifths (-7..7).</summary>
     public int LiveKeyFifths { get; init; }
+
+    public NoteReadingOptions NoteReading { get; init; } = new();
 }
 
 /// <summary>Loads and saves <see cref="AppSettings"/> as JSON in the given folder.</summary>

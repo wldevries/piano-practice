@@ -22,6 +22,13 @@ public static class StaffPosition
     public static int Step(SpelledPitch pitch, Clef clef) =>
         pitch.DiatonicIndex - (clef == Clef.Treble ? TrebleBottom : BassBottom);
 
+    /// <summary>The note written at a staff step (inverse of <see cref="Step"/>), with the given accidental.</summary>
+    public static SpelledPitch PitchAt(int step, Clef clef, int accidental = 0)
+    {
+        var index = step + (clef == Clef.Treble ? TrebleBottom : BassBottom);
+        return new SpelledPitch((Letter)(index % 7), accidental, index / 7);
+    }
+
     /// <summary>Steps of the clef's reference line: the G line for treble, the F line for bass.</summary>
     public static int ClefLine(Clef clef) => clef == Clef.Treble ? 2 : 6;
 
