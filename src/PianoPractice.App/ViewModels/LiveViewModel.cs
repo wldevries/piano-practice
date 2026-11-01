@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.UI.Dispatching;
 using PianoPractice.App.Controls;
 using PianoPractice.Core.Midi;
+using PianoPractice.Core.Settings;
 using PianoPractice.Core.Theory;
 
 namespace PianoPractice.App.ViewModels;
@@ -12,17 +13,32 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
     private const int OnScreenVelocity = 80;
 
     private readonly IMidiService _midi;
+    private readonly SettingsStore _settings;
     private readonly DispatcherQueue _dispatcher = DispatcherQueue.GetForCurrentThread();
 
     private readonly Dictionary<int, int> _pianoHeld = new(); // midi → velocity
     private readonly HashSet<int> _screenHeld = new();
 
-    public LiveViewModel(IMidiService midi)
+    public LiveViewModel(IMidiService midi, SettingsStore settings)
     {
         _midi = midi;
+        _settings = settings;
+        SelectedKey = new KeySignature(settings.Current.LiveKeyFifths);
         _midi.NoteReceived += OnNoteReceived;
         _midi.SustainChanged += OnSustainChanged;
         _midi.ConnectionChanged += OnConnectionChanged;
+
+#if DEBUG
+        // Dev aid for screenshots without a piano: PIANOPRACTICE_DEMO_NOTES=60,64,67 shows those notes as held.
+        if (Environment.GetEnvironmentVariable("PIANOPRACTICE_DEMO_NOTES") is { Length: > 0 } demo)
+        {
+            foreach (var part in demo.Split(','))
+            {
+                if (int.TryParse(part, out var note)) _pianoHeld[note] = 100;
+            }
+            Refresh();
+        }
+#endif
     }
 
     /// <summary>Unplugged mid-note: the note-offs will never arrive, so drop what was held.</summary>
@@ -45,6 +61,24 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial bool IsSustainOn { get; set; }
+
+    [ObservableProperty]
+    public partial IReadOnlyList<StaffNote> StaffNotes { get; set; } = [];
+
+    public IReadOnlyList<KeySignature> Keys => KeySignature.All;
+
+    /// <summary>Key used to spell held notes and draw the key signature.</summary>
+    [ObservableProperty]
+    public partial KeySignature SelectedKey { get; set; }
+
+    partial void OnSelectedKeyChanged(KeySignature value)
+    {
+        if (_settings.Current.LiveKeyFifths != value.Fifths)
+        {
+            _settings.Update(s => s with { LiveKeyFifths = value.Fifths });
+        }
+        Refresh();
+    }
 
     private void OnNoteReceived(object? sender, MidiNoteEvent e) => _dispatcher.TryEnqueue(() =>
     {
@@ -84,7 +118,11 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
         Highlights = highlights;
 
         var held = _pianoHeld.Keys.Union(_screenHeld).Order().Select(m => new Pitch(m)).ToList();
-        NoteNamesText = string.Join("  ", held.Select(NoteNames.WithOctave));
+        var spelled = held.Select(p => SelectedKey.Spell(p)).ToList();
+        StaffNotes = held
+            .Select((p, i) => new StaffNote(spelled[i], _pianoHeld.ContainsKey(p.MidiNumber) ? null : KeyHighlightKind.Sounded))
+            .ToList();
+        NoteNamesText = string.Join("  ", spelled);
         ChordName = ChordDetector.Detect(held)?.Name
             ?? (held.Count == 2 ? NoteNames.Interval(held[1].MidiNumber - held[0].MidiNumber) : "");
     }

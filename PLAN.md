@@ -44,20 +44,20 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 
 ## Milestones
 
-### M0: Skeleton
+### M0: Skeleton ✅
 - `git init`; the solution with three projects; NuGet references.
 - Bundle the Bravura font and confirm it renders in a `CanvasControl`.
 - NavigationView shell with empty pages.
 - **Done when:** the app launches and shows a "Hello" staff glyph (treble clef) drawn with Win2D.
 
-### M1: MIDI and live keyboard
+### M1: MIDI and live keyboard ✅
 - Device picker in Settings, auto-connect, and the connection status chip.
 - `PianoKeyboard` control: 88 keys (range configurable) with pressed keys highlighted. Velocity can tint the highlight.
 - Clicking an on-screen key sends it to the FP-10, which plays it.
 - Live page: names of the notes currently held, plus chord detection (major, minor, dim, aug, sus, 7ths; inversions shown as "C/E").
 - **Done when:** playing a C major chord on the FP-10 lights C-E-G and shows "C".
 
-### M2: Grand staff renderer
+### M2: Grand staff renderer ✅
 - `GrandStaff` control: treble and bass clefs, ledger lines, accidentals, whole/half/quarter noteheads with stems, and key signatures.
 - Core: `StaffPosition` maps a spelled pitch and clef to a line/space index (unit-tested), and middle C goes to treble or bass according to a split point.
 - Per-note colour, used for correct/wrong feedback.
@@ -93,9 +93,10 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Melody dictation, chord-quality ear training, rhythm drills
 - Built-in SoundFont synth (MeltySynth) for practising without the piano connected
 - Practice history and streaks dashboard
-- Bluetooth MIDI: the piano can't sit next to the PC, so a cable isn't ideal. Windows' built-in BLE pairing of the FP-10 didn't work, so Wouter removed it. To evaluate: [Perfect-Bluetooth-MIDI-For-Windows](https://github.com/mayerwin/Perfect-Bluetooth-MIDI-For-Windows). It connects to the piano over Bluetooth itself and publishes a Windows MIDI Services virtual port (default name "BT-MIDI Bridge"), because WMS doesn't have a native BLE MIDI transport yet. The port should show up for DryWetMIDI. Its default name is now matched by `DryWetMidiService.LooksLikePiano`. Check latency against USB.
+- Bluetooth MIDI: the piano can't sit next to the PC, so a cable isn't ideal. Windows' built-in BLE pairing of the FP-10 didn't work, so Wouter removed it. To evaluate: [Perfect-Bluetooth-MIDI-For-Windows](https://github.com/mayerwin/Perfect-Bluetooth-MIDI-For-Windows). It connects to the piano over Bluetooth itself and publishes a Windows MIDI Services virtual port (default name "BT-MIDI Bridge"), because (per its README) WMS had no stable BLE transport. The port should show up for DryWetMIDI. Its default name is now matched by `DryWetMidiService.LooksLikePiano`. Check latency against USB.
   - Alternative: implement BLE MIDI in this app with `Windows.Devices.Bluetooth` (MIDI GATT service `03B80E5A-EDE8-4B33-A751-6CE34EC4C700`). That means scan, connect, subscribe to notifications and parse BLE MIDI packets, roughly a few hundred lines behind `IMidiService`.
-  - The Windows MIDI Services SDK (`Microsoft.Windows.Devices.Midi2`) is the modern MIDI API (multi-client, MIDI 2.0). It doesn't help with BLE until WMS gets a BLE transport. It's an option to replace DryWetMIDI's WinMM device layer later.
+  - Windows MIDI Services itself has a **BLE MIDI 1.0 transport in its preview releases** (microsoft/MIDI releases: "Bluetooth LE MIDI 1.0 transports" in Preview 10; an earlier preview fixed WinMM apps not seeing BLE data). The previews are unsigned, need Developer Mode and Windows 11 25H2. The "FP-10 (Bluetooth MIDI IN/OUT)" devices seen on 2026-11-01 were probably this; it didn't work then, so retry with the latest preview. If it works, the FP-10 shows up as a normal WinMM port and this app needs no changes.
+  - The WMS SDK (`Microsoft.Windows.Devices.Midi2`) is the modern MIDI API (multi-client, MIDI 2.0). It's an option to replace DryWetMIDI's WinMM device layer later, but it isn't needed for BLE.
 
 ## Risks and open questions
 - **MIDI file quality:** many free MIDI files have messy tracks. Keep a small curated set of known-good files for testing M5.

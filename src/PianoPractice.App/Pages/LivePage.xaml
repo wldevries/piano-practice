@@ -13,27 +13,47 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Spacing="4">
-            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Live" />
-            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                       Text="Play anything on the piano, or click the keys below." />
-        </StackPanel>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Live" />
+                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Text="Play anything on the piano, or click the keys below." />
+            </StackPanel>
+            <ComboBox Grid.Column="1" Header="Key" MinWidth="240" VerticalAlignment="Bottom"
+                      ItemsSource="{x:Bind ViewModel.Keys}"
+                      SelectedItem="{x:Bind ViewModel.SelectedKey, Mode=TwoWay}" />
+        </Grid>
 
-        <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
-            <TextBlock Text="{x:Bind ViewModel.ChordName, Mode=OneWay}"
-                       FontSize="96" FontWeight="SemiBold" HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Bind ViewModel.NoteNamesText, Mode=OneWay}"
-                       Style="{StaticResource SubtitleTextBlockStyle}"
-                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                       HorizontalAlignment="Center" />
-        </StackPanel>
+        <Grid Grid.Row="1" ColumnSpacing="24">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="460" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Border Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Left"
-                Padding="10,4" CornerRadius="4"
-                Background="{ThemeResource AccentFillColorDefaultBrush}"
-                Visibility="{x:Bind ViewModel.IsSustainOn, Mode=OneWay}">
-            <TextBlock Text="Pedal" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-        </Border>
+            <controls:GrandStaff
+                Notes="{x:Bind ViewModel.StaffNotes, Mode=OneWay}"
+                Key="{x:Bind ViewModel.SelectedKey, Mode=OneWay}" />
+
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12">
+                <TextBlock Text="{x:Bind ViewModel.ChordName, Mode=OneWay}"
+                           FontSize="96" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                <TextBlock Text="{x:Bind ViewModel.NoteNamesText, Mode=OneWay}"
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+
+            <Border Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right"
+                    Padding="10,4" CornerRadius="4"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    Visibility="{x:Bind ViewModel.IsSustainOn, Mode=OneWay}">
+                <TextBlock Text="Pedal" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+            </Border>
+        </Grid>
 
         <controls:PianoKeyboard
             Grid.Row="2"

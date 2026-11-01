@@ -6,6 +6,9 @@ public sealed record AppSettings
 {
     public string? MidiInput { get; init; }
     public string? MidiOutput { get; init; }
+
+    /// <summary>Key signature on the Live page, in fifths (-7..7).</summary>
+    public int LiveKeyFifths { get; init; }
 }
 
 /// <summary>Loads and saves <see cref="AppSettings"/> as JSON in the given folder.</summary>
