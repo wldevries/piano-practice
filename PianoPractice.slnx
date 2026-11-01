@@ -1,9 +1,18 @@
 <Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
   <Folder Name="/src/">
-    <Project Path="src/PianoPractice.App/PianoPractice.App.csproj" />
-    <Project Path="src/PianoPractice.Core/PianoPractice.Core.csproj" />
+    <Project Path="src/PianoPractice.App/PianoPractice.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/PianoPractice.Core/PianoPractice.Core.csproj">
+      <Platform Project="Any CPU" />
+    </Project>
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/PianoPractice.Core.Tests/PianoPractice.Core.Tests.csproj" />
+    <Project Path="tests/PianoPractice.Core.Tests/PianoPractice.Core.Tests.csproj">
+      <Platform Project="Any CPU" />
+    </Project>
   </Folder>
 </Solution>
