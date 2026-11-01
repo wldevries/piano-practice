@@ -5,4 +5,5 @@ public static class StatsKeys
 {
     public const string NoteReading = "note-reading";
     public const string Intervals = "intervals";
+    public const string PlayAlong = "play-along";
 }

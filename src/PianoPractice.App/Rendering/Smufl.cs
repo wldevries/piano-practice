@@ -22,6 +22,21 @@ public static class Smufl
     public const string NoteheadHalf = "";
     public const string NoteheadBlack = "";
 
+    // Flags (origin at the end of the stem), rests (origin on the middle line; the whole rest hangs from the 4th line), dots.
+    public const string Flag8thUp = "";
+    public const string Flag8thDown = "";
+    public const string Flag16thUp = "";
+    public const string Flag16thDown = "";
+    public const string Flag32ndUp = "";
+    public const string Flag32ndDown = "";
+    public const string RestWhole = "";
+    public const string RestHalf = "";
+    public const string RestQuarter = "";
+    public const string Rest8th = "";
+    public const string Rest16th = "";
+    public const string Rest32nd = "";
+    public const string AugmentationDot = "";
+
     // Accidentals
     public const string AccidentalFlat = "";
     public const string AccidentalNatural = "";
@@ -47,4 +62,7 @@ public static class Smufl
     public const float NoteheadBlackWidth = 1.18f;
     public const float NoteheadWholeWidth = 1.69f;
     public const float BraceWidth = 0.33f; // at its nominal height of one staff (4 spaces)
+    public const float BeamThickness = 0.5f;
+    public const float BeamSpacing = 0.25f;
+    public const float NoteheadHalfWidth = 1.18f;
 }

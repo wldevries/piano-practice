@@ -1,0 +1,14 @@
+title: Canon in D (simplified)
+composer: Pachelbel
+tempo: 66
+time: 4/4
+key: 2
+# The bass repeats the same eight notes all the way through; the melody gets busier each time round.
+RH: F#5/h E5 | D5/h C#5 | B4/h A4 | B4/h C#5 |
+RH: D5/h C#5 | B4/h A4 | G4/h F#4 | G4/h E4 |
+RH: D4/q F#4 A4 G4 | F#4 D4 F#4 E4 | D4 B3 D4 A4 | G4 B4 A4 G4 |
+RH: D5/w |
+LH: D3/h A2 | B2/h F#2 | G2/h D2 | G2/h A2 |
+LH: D3/h A2 | B2/h F#2 | G2/h D2 | G2/h A2 |
+LH: D3/h A2 | B2/h F#2 | G2/h D2 | G2/h A2 |
+LH: D2/w |

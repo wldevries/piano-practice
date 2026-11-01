@@ -13,6 +13,9 @@ public partial class App : Application
 {
     private Window? _window;
 
+    /// <summary>The main window, for APIs that need a window handle (file pickers).</summary>
+    public static Window? CurrentWindow { get; private set; }
+
     public static string DataFolder { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PianoPractice");
 
@@ -31,10 +34,12 @@ public partial class App : Application
         .AddSingleton<IMidiService, DryWetMidiService>()
         .AddKeyedSingleton(StatsKeys.NoteReading, new ExerciseStatsStore(DataFolder, NoteReadingSession.StatsFileName))
         .AddKeyedSingleton(StatsKeys.Intervals, new ExerciseStatsStore(DataFolder, IntervalSession.StatsFileName))
+        .AddKeyedSingleton(StatsKeys.PlayAlong, new ExerciseStatsStore(DataFolder, "play-along-stats.json"))
         .AddSingleton<ShellViewModel>()
         .AddTransient<LiveViewModel>()
         .AddTransient<NoteReadingViewModel>()
         .AddTransient<IntervalsViewModel>()
+        .AddTransient<PlayAlongViewModel>()
         .AddTransient<SettingsViewModel>()
         .BuildServiceProvider();
 
@@ -45,7 +50,7 @@ public partial class App : Application
         if (settings.MidiChosenManually) midi.Connect(settings.MidiInput, settings.MidiOutput);
         else midi.AutoConnect(settings.MidiInput, settings.MidiOutput);
 
-        _window = new MainWindow();
+        _window = CurrentWindow = new MainWindow();
         _window.Closed += (_, _) => midi.Dispose();
         _window.Activate();
     }

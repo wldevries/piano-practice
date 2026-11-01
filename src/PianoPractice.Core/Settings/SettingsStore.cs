@@ -1,6 +1,7 @@
 using System.Text.Json;
 using PianoPractice.Core.Exercises.Intervals;
 using PianoPractice.Core.Exercises.NoteReading;
+using PianoPractice.Core.PlayAlong;
 
 namespace PianoPractice.Core.Settings;
 
@@ -21,6 +22,8 @@ public sealed record AppSettings
     public NoteReadingOptions NoteReading { get; init; } = new();
 
     public IntervalOptions Intervals { get; init; } = new();
+
+    public PlayAlongOptions PlayAlong { get; init; } = new();
 }
 
 /// <summary>Loads and saves <see cref="AppSettings"/> as JSON in the given folder.</summary>

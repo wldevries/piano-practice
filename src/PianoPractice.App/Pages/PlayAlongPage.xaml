@@ -2,10 +2,178 @@
 <Page
     x:Class="PianoPractice.App.Pages.PlayAlongPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:PianoPractice.App.Controls"
+    xmlns:vm="using:PianoPractice.App.ViewModels"
+    Loaded="Page_Loaded"
+    Unloaded="Page_Unloaded">
 
-    <StackPanel Padding="36,24" Spacing="4">
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Play-along" />
-        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Load a MIDI file and practise with falling notes and wait mode. Coming in M5." />
-    </StackPanel>
+    <Page.KeyboardAccelerators>
+        <KeyboardAccelerator Key="Space" Invoked="PlayPause_Invoked" />
+        <KeyboardAccelerator Key="R" Invoked="Restart_Invoked" />
+    </Page.KeyboardAccelerators>
+
+    <Grid Padding="24,16,24,12" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Song and transport -->
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="Play-along" VerticalAlignment="Center" Margin="0,0,12,0" />
+            <ComboBox Grid.Column="1" Width="300" VerticalAlignment="Center" AutomationProperties.Name="Song"
+                      ItemsSource="{x:Bind ViewModel.Songs}"
+                      SelectedItem="{x:Bind ViewModel.SelectedSong, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SongChoice">
+                        <StackPanel>
+                            <TextBlock Text="{x:Bind Title}" />
+                            <TextBlock Text="{x:Bind Detail}" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="2" Click="OpenFile_Click" VerticalAlignment="Center" ToolTipService.ToolTip="Open a MIDI file (.mid)">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE8E5;" FontSize="14" />
+                    <TextBlock Text="Open MIDI…" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="3" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.HasParts, Mode=OneWay}"
+                    ToolTipService.ToolTip="Choose which tracks are the right and left hand">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE8FD;" FontSize="14" />
+                    <TextBlock Text="Tracks" />
+                </StackPanel>
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                        <StackPanel Spacing="8" MinWidth="520">
+                            <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Which hand plays each track?" />
+                            <TextBlock TextWrapping="Wrap" MaxWidth="520" HorizontalAlignment="Left"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Band songs have a track per instrument. Usually: the melody (the singer's part) for the right hand, the bass for the left hand, and Ignore for the rest. A piano track can be split at middle C." />
+                            <ScrollViewer MaxHeight="460" Padding="0,0,12,0">
+                            <ItemsControl ItemsSource="{x:Bind ViewModel.Parts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:PartChoice">
+                                        <Grid ColumnSpacing="12" Margin="0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="180" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{x:Bind Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                                      ItemsSource="{x:Bind RoleOptions}"
+                                                      SelectedIndex="{x:Bind RoleIndex, Mode=TwoWay}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+            <TextBlock Grid.Column="4" Text="{x:Bind ViewModel.SongInfo, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" TextWrapping="NoWrap" MaxLines="1"
+                       ToolTipService.ToolTip="{x:Bind ViewModel.SongInfo, Mode=OneWay}"
+                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextTrimming="CharacterEllipsis" />
+            <ComboBox Grid.Column="5" Width="150" VerticalAlignment="Center" ToolTipService.ToolTip="Falling notes or sheet music"
+                      AutomationProperties.Name="View"
+                      ItemsSource="{x:Bind ViewModel.ViewOptions}" SelectedIndex="{x:Bind ViewModel.ViewIndex, Mode=TwoWay}" />
+            <Button Grid.Column="6" Command="{x:Bind ViewModel.RestartCommand}" AutomationProperties.Name="Restart" VerticalAlignment="Center" ToolTipService.ToolTip="Start again (R)">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE72C;" FontSize="14" />
+                    <TextBlock Text="Restart" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="7" Command="{x:Bind ViewModel.PlayPauseCommand}" AutomationProperties.Name="{x:Bind ViewModel.PlayButtonText, Mode=OneWay}" Style="{StaticResource AccentButtonStyle}" MinWidth="110"
+                    VerticalAlignment="Center" ToolTipService.ToolTip="Play / pause (Space)">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="{x:Bind ViewModel.PlayButtonSymbol, Mode=OneWay}" FontSize="14" />
+                    <TextBlock Text="{x:Bind ViewModel.PlayButtonText, Mode=OneWay}" />
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Options -->
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="130" MaxWidth="260" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ComboBox Header="Practise" Width="135" ItemsSource="{x:Bind ViewModel.HandsOptions}"
+                      SelectedIndex="{x:Bind ViewModel.HandsIndex, Mode=TwoWay}" />
+            <ComboBox Grid.Column="1" Header="Mode" Width="175" ItemsSource="{x:Bind ViewModel.ModeOptions}"
+                      SelectedIndex="{x:Bind ViewModel.ModeIndex, Mode=TwoWay}" />
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="{x:Bind ViewModel.TempoText(ViewModel.TempoPercent), Mode=OneWay}" Margin="0,0,0,4" />
+                <Slider Minimum="25" Maximum="120" StepFrequency="5" SmallChange="5" LargeChange="10" TickFrequency="25" TickPlacement="Outside"
+                        Value="{x:Bind ViewModel.TempoPercent, Mode=TwoWay}" />
+            </StackPanel>
+            <NumberBox Grid.Column="3" Header="From bar" Width="92" Minimum="1" Maximum="{x:Bind ViewModel.BarCount, Mode=OneWay}"
+                       SpinButtonPlacementMode="Compact" Value="{x:Bind ViewModel.FromBar, Mode=TwoWay}" />
+            <NumberBox Grid.Column="4" Header="To bar" Width="92" Minimum="1" Maximum="{x:Bind ViewModel.BarCount, Mode=OneWay}"
+                       SpinButtonPlacementMode="Compact" Value="{x:Bind ViewModel.ToBar, Mode=TwoWay}" />
+            <StackPanel Grid.Column="5" VerticalAlignment="Bottom">
+                <CheckBox Content="Loop bars" IsChecked="{x:Bind ViewModel.Loop, Mode=TwoWay}" MinHeight="28" />
+                <CheckBox Content="Note names" IsChecked="{x:Bind ViewModel.ShowNoteNames, Mode=TwoWay}" MinHeight="28" />
+            </StackPanel>
+            <StackPanel Grid.Column="6" VerticalAlignment="Bottom">
+                <CheckBox Content="Piano plays the other hand" IsChecked="{x:Bind ViewModel.PlayOtherHand, Mode=TwoWay}" MinHeight="28" />
+                <TextBlock Text=" " MinHeight="28" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Falling notes -->
+        <Grid Grid.Row="2" CornerRadius="6">
+            <controls:SheetMusic x:Name="Sheet" Visibility="{x:Bind ViewModel.IsSheetMusic, Mode=OneWay}" />
+            <controls:FallingNotes x:Name="Notes" Visibility="{x:Bind ViewModel.IsFallingNotes, Mode=OneWay}"
+                                   LowestKey="{x:Bind ViewModel.LowestKey, Mode=OneWay}"
+                                   HighestKey="{x:Bind ViewModel.HighestKey, Mode=OneWay}" />
+            <Border Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}" CornerRadius="8" Padding="28,18">
+                <TextBlock Text="{x:Bind ViewModel.ResultText, Mode=OneWay}" TextAlignment="Center" FontSize="18" />
+            </Border>
+            <InfoBar IsOpen="{x:Bind ViewModel.HasLoadError, Mode=OneWay}" Severity="Error"
+                     Message="{x:Bind ViewModel.LoadError, Mode=OneWay}" IsClosable="False" VerticalAlignment="Top" Margin="12" />
+        </Grid>
+
+        <controls:PianoKeyboard Grid.Row="3" x:Name="Keyboard" MaxHeight="150"
+                                LowestKey="{x:Bind ViewModel.LowestKey, Mode=OneWay}"
+                                HighestKey="{x:Bind ViewModel.HighestKey, Mode=OneWay}"
+                                Highlights="{x:Bind ViewModel.Highlights, Mode=OneWay}"
+                                KeyPressed="Keyboard_KeyPressed"
+                                KeyReleased="Keyboard_KeyReleased" />
+
+        <Grid Grid.Row="4" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.ScoreText, Mode=OneWay}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Grid>
+    </Grid>
 </Page>

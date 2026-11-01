@@ -93,8 +93,13 @@ public sealed partial class PianoKeyboard : UserControl
 
     #endregion
 
+    public static readonly Color RightHandColor = Color.FromArgb(255, 56, 152, 236); // blue
+    public static readonly Color LeftHandColor = Color.FromArgb(255, 236, 112, 40);  // orange
+
     public static Color ColorFor(KeyHighlightKind kind) => kind switch
     {
+        KeyHighlightKind.RightHand => RightHandColor,
+        KeyHighlightKind.LeftHand => LeftHandColor,
         KeyHighlightKind.Played => Color.FromArgb(255, 59, 130, 246),   // blue
         KeyHighlightKind.Sounded => Color.FromArgb(255, 245, 158, 11),  // amber
         KeyHighlightKind.Correct => Color.FromArgb(255, 34, 197, 94),   // green

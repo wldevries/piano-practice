@@ -1,0 +1,10 @@
+title: Mary Had a Little Lamb
+composer: Traditional
+tempo: 100
+time: 4/4
+key: 0
+# Three keys for the right hand (C D E) plus a G; the left hand plays two notes.
+RH: E4/q D4 C4 D4 | E4 E4 E4/h | D4/q D4 D4/h | E4/q G4 G4/h |
+RH: E4/q D4 C4 D4 | E4 E4 E4 E4 | D4 D4 E4 D4 | C4/w |
+LH: C3/w | C3/w | G2/w | C3/w |
+LH: C3/w | C3/w | G2/w | C3/w |

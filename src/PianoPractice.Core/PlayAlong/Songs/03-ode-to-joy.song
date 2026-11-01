@@ -1,0 +1,14 @@
+title: Ode to Joy
+composer: Beethoven
+tempo: 96
+time: 4/4
+key: 0
+# Right hand stays in C position (thumb on C4); bar 12 reaches down to G3.
+RH: E4/q E4 F4 G4 | G4 F4 E4 D4 | C4 C4 D4 E4 | E4/q. D4/8 D4/h |
+RH: E4/q E4 F4 G4 | G4 F4 E4 D4 | C4 C4 D4 E4 | D4/q. C4/8 C4/h |
+RH: D4/q D4 E4 C4 | D4/q E4/8 F4 E4/q C4 | D4/q E4/8 F4 E4/q D4 | C4/q D4 G3/h |
+RH: E4/q E4 F4 G4 | G4 F4 E4 D4 | C4 C4 D4 E4 | D4/q. C4/8 C4/h |
+LH: C3/w | G2/w | C3/w | G2/w |
+LH: C3/w | G2/w | C3/w | G2/h C3/h |
+LH: G2/h C3/h | G2/h C3/h | G2/w | C3/h G2/h |
+LH: C3/w | G2/w | C3/w | G2/h C3/h |

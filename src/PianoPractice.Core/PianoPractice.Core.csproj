@@ -8,4 +8,8 @@
     <PackageReference Include="Melanchall.DryWetMidi" Version="8.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="PlayAlong\Songs\*.song" LogicalName="Songs/%(Filename)%(Extension)" />
+  </ItemGroup>
+
 </Project>

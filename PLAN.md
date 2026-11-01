@@ -80,12 +80,14 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Interval stats feed the shared stats store.
 - **Done when:** you can drill an interval set and see your accuracy for each interval.
 
-### M5: MIDI play-along with wait mode
-- Load a `.mid` file and choose which tracks or channels count as right hand / left hand. Default split: a 2-track file means track 1 is RH and track 2 is LH, otherwise split by pitch.
-- Falling notes over the keyboard (`CanvasAnimatedControl`), coloured by hand.
-- **Wait mode:** the song pauses at each chord until you play all the notes it expects. **Flow mode:** it plays at tempo and scores your timing.
-- Practise one hand while the app plays the other hand on the FP-10, or mutes it.
-- Tempo slider (25–100%) and A–B loop over a bar range.
+### M5: MIDI play-along with wait mode 🧪 (built 2026-11-01, needs a run on the FP-10)
+- Load a `.mid` file and choose which tracks or channels count as right hand / left hand. Defaults: one part is auto-split between the hands (`HandSplitter` follows where each hand is, so a voice crossing middle C stays in one hand); two parts become RH (higher) and LH; a band file gets melody → RH, bass → LH and everything else ignored. Drums are always ignored. Track list shows General MIDI instrument names.
+- Falling notes over the keyboard, coloured by hand (RH blue, LH orange). Drawn with a `CanvasControl` redrawn on `CompositionTarget.Rendering`, not `CanvasAnimatedControl`, so everything stays on the UI thread.
+- **Wait mode:** the song pauses at each chord until you play all the notes it expects. **Flow mode:** it plays at tempo and scores your timing (±200 ms window).
+- Practise one hand while the app plays the other hand on the FP-10, or mutes it. Also "just listen": the piano plays both hands.
+- Tempo slider (25–120%) and A–B loop over a bar range.
+- Built-in public-domain songs in a small text format (`Core/PlayAlong/Songs/*.song`; bar lengths are checked by tests), easiest first: Mary Had a Little Lamb, Twinkle Twinkle, Ode to Joy, Frère Jacques, Jingle Bells, Happy Birthday, Greensleeves, Canon in D (simplified), Minuet in G, Für Elise (opening).
+- **Sheet music view** (instead of falling notes): a scrolling grand staff, RH on treble and LH on bass, with spacing proportional to time. `ScoreBuilder` derives notation from any song: rhythms quantized to sixteenths per bar, key spelling (key guessed from the notes when a MIDI file has none or says C major), accidentals carried through the bar, rests, stems, beams per beat, and 8va for high passages. It is an approximation for MIDI files; no ties, triplets or multiple voices per staff.
 - **Done when:** a simple two-hand MIDI file can be practised hands-separately in wait mode.
 
 ## Out of scope for v1 (backlog)
@@ -94,6 +96,8 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Built-in SoundFont synth (MeltySynth) for practising without the piano connected
 - Practice history and streaks dashboard
 - Note reading **landmarks** hint: on a mistake (or optionally always), show the nearest landmark note and the distance to it (e.g. "C5 + 2 steps"). Configurable landmark set; default C/G: C4, G4, C5, (F5), G5, C6 and bass F3, C3, C2. Wouter already reads via C and G. His first session's fastest notes were exactly C5 and G4, and the slowest were the furthest from them (E5, D5, B4). Possibly also a drill that only asks landmarks, then expands outward.
+- More songs. Rock and pop are copyrighted, so they can't be built in, but your own `.mid` files work. More public-domain pieces can be added as `.song` files.
+- Play-along: per-song best score, sustain pedal as play/pause, metronome count-in, and showing the notes on the grand staff.
 - Measure Bluetooth latency against USB. It matters for timing scores in M5 flow mode.
 - Optional: replace DryWetMIDI's WinMM device layer with the Windows MIDI Services SDK (`Microsoft.Windows.Devices.Midi2`: multi-client, MIDI 2.0, richer device info). Not needed for anything so far.
 

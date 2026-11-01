@@ -25,8 +25,11 @@ public static class ChordLayout
     /// <summary>Accidentals in the same column need this many steps between them (≈ glyph height).</summary>
     public const int AccidentalClearance = 6;
 
-    public static ChordLayoutResult Compute(IReadOnlyList<SpelledPitch> notes, Clef clef, KeySignature key)
+    /// <param name="displayedAccidental">Which sign to print for a note; defaults to the key signature alone (no bar context).</param>
+    public static ChordLayoutResult Compute(IReadOnlyList<SpelledPitch> notes, Clef clef, KeySignature key,
+        Func<SpelledPitch, int?>? displayedAccidental = null)
     {
+        displayedAccidental ??= key.DisplayedAccidental;
         var ordered = notes
             .Select((pitch, index) => (Index: index, Pitch: pitch, Step: StaffPosition.Step(pitch, clef)))
             .OrderBy(n => n.Step)
@@ -46,7 +49,7 @@ public static class ChordLayout
         var columnOf = new int[ordered.Count];
         for (var i = ordered.Count - 1; i >= 0; i--)
         {
-            if (key.DisplayedAccidental(ordered[i].Pitch) is null) continue;
+            if (displayedAccidental(ordered[i].Pitch) is null) continue;
             var step = ordered[i].Step;
             var column = columns.FindIndex(c => c.All(s => Math.Abs(s - step) >= AccidentalClearance));
             if (column < 0)
@@ -59,7 +62,7 @@ public static class ChordLayout
         }
 
         var placed = ordered
-            .Select((n, i) => new PlacedNote(n.Index, n.Step, displaced[i], key.DisplayedAccidental(n.Pitch), columnOf[i]))
+            .Select((n, i) => new PlacedNote(n.Index, n.Step, displaced[i], displayedAccidental(n.Pitch), columnOf[i]))
             .ToList();
 
         var ledgers = ordered.Count == 0
