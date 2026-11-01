@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using PianoPractice.App.ViewModels;
+using PianoPractice.Core.Exercises;
+using PianoPractice.Core.Exercises.Intervals;
 using PianoPractice.Core.Exercises.NoteReading;
 using PianoPractice.Core.Midi;
 using PianoPractice.Core.Settings;
@@ -27,10 +29,12 @@ public partial class App : Application
     private static IServiceProvider ConfigureServices() => new ServiceCollection()
         .AddSingleton(new SettingsStore(DataFolder))
         .AddSingleton<IMidiService, DryWetMidiService>()
-        .AddSingleton(new NoteReadingStatsStore(DataFolder))
+        .AddKeyedSingleton(StatsKeys.NoteReading, new ExerciseStatsStore(DataFolder, NoteReadingSession.StatsFileName))
+        .AddKeyedSingleton(StatsKeys.Intervals, new ExerciseStatsStore(DataFolder, IntervalSession.StatsFileName))
         .AddSingleton<ShellViewModel>()
         .AddTransient<LiveViewModel>()
         .AddTransient<NoteReadingViewModel>()
+        .AddTransient<IntervalsViewModel>()
         .AddTransient<SettingsViewModel>()
         .BuildServiceProvider();
 

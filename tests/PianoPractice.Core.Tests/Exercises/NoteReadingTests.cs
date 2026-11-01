@@ -1,3 +1,4 @@
+using PianoPractice.Core.Exercises;
 using PianoPractice.Core.Exercises.NoteReading;
 using PianoPractice.Core.Notation;
 using PianoPractice.Core.Theory;
@@ -72,7 +73,7 @@ public class NoteReadingDeckTests
     public void Card_ids_round_trip(string id) => Assert.Equal(id, NoteCard.TryParseId(id)!.Id);
 }
 
-public class CardPickerTests
+public class WeightedPickerTests
 {
     [Fact]
     public void Weights_favour_new_wrong_and_slow_cards()
@@ -81,51 +82,51 @@ public class CardPickerTests
         var wrong = new CardStats { Attempts = 10, Correct = 3, AverageMs = 800 };
         var slow = new CardStats { Attempts = 10, Correct = 10, AverageMs = 3500 };
 
-        Assert.True(CardPicker.Weight(wrong) > CardPicker.Weight(good));
-        Assert.True(CardPicker.Weight(slow) > CardPicker.Weight(good));
-        Assert.True(CardPicker.Weight(null) > CardPicker.Weight(good));
+        Assert.True(PracticeWeight.Of(wrong) > PracticeWeight.Of(good));
+        Assert.True(PracticeWeight.Of(slow) > PracticeWeight.Of(good));
+        Assert.True(PracticeWeight.Of(null) > PracticeWeight.Of(good));
     }
 
     [Fact]
     public void Slowness_is_relative_to_the_players_own_pace()
     {
         // A beginner averaging ~6 s: 10 s notes must still stand out from 3 s notes.
-        var stats = new NoteReadingStats();
+        var stats = new ExerciseStats();
         var deck = NoteReadingDeck.Build(new NoteReadingOptions());
         double[] times = [3000, 5000, 6000, 6300, 6800, 8300, 9800, 10000, 2800];
-        for (var i = 0; i < deck.Count; i++) stats.GetOrAdd(deck[i]).Record(true, times[i], DateTimeOffset.UnixEpoch);
+        for (var i = 0; i < deck.Count; i++) stats.GetOrAdd(deck[i].Id).Record(true, times[i], DateTimeOffset.UnixEpoch);
 
-        var reference = CardPicker.ReferenceMs(stats);
+        var reference = PracticeWeight.ReferenceMs(stats);
         Assert.Equal(6300, reference);
-        Assert.True(CardPicker.Weight(stats.For(deck[7]), reference) > CardPicker.Weight(stats.For(deck[0]), reference) + 0.5);
+        Assert.True(PracticeWeight.Of(stats.For(deck[7].Id), reference) > PracticeWeight.Of(stats.For(deck[0].Id), reference) + 0.5);
 
         // With a fixed 1.5 s bar both would be capped as "maximally slow".
-        Assert.Equal(CardPicker.Weight(stats.For(deck[7])), CardPicker.Weight(stats.For(deck[2])));
+        Assert.Equal(PracticeWeight.Of(stats.For(deck[7].Id)), PracticeWeight.Of(stats.For(deck[2].Id)));
     }
 
     [Fact]
     public void Reference_never_drops_below_the_comfortable_pace()
     {
-        var stats = new NoteReadingStats();
-        foreach (var card in NoteReadingDeck.Build(new NoteReadingOptions())) stats.GetOrAdd(card).Record(true, 700, DateTimeOffset.UnixEpoch);
-        Assert.Equal(CardPicker.ComfortableMs, CardPicker.ReferenceMs(stats));
-        Assert.Equal(CardPicker.ComfortableMs, CardPicker.ReferenceMs(new NoteReadingStats()));
+        var stats = new ExerciseStats();
+        foreach (var card in NoteReadingDeck.Build(new NoteReadingOptions())) stats.GetOrAdd(card.Id).Record(true, 700, DateTimeOffset.UnixEpoch);
+        Assert.Equal(PracticeWeight.ComfortableMs, PracticeWeight.ReferenceMs(stats));
+        Assert.Equal(PracticeWeight.ComfortableMs, PracticeWeight.ReferenceMs(new ExerciseStats()));
     }
 
     [Fact]
     public void Weak_cards_come_up_more_often()
     {
         var deck = NoteReadingDeck.Build(new NoteReadingOptions());
-        var stats = new NoteReadingStats();
+        var stats = new ExerciseStats();
         foreach (var card in deck)
         {
-            for (var i = 0; i < 10; i++) stats.GetOrAdd(card).Record(true, 600, DateTimeOffset.UnixEpoch);
+            for (var i = 0; i < 10; i++) stats.GetOrAdd(card.Id).Record(true, 600, DateTimeOffset.UnixEpoch);
         }
         var weak = deck[3];
-        var weakStats = stats.GetOrAdd(weak);
+        var weakStats = stats.GetOrAdd(weak.Id);
         for (var i = 0; i < 10; i++) weakStats.Record(false, 3000, DateTimeOffset.UnixEpoch);
 
-        var picker = new CardPicker(deck, stats, new Random(42));
+        var picker = new WeightedPicker<NoteCard>(deck, c => c.Id, stats, new Random(42));
         var counts = deck.ToDictionary(c => c, _ => 0);
         NoteCard? previous = null;
         for (var i = 0; i < 5000; i++)
@@ -142,7 +143,7 @@ public class CardPickerTests
     public void Never_repeats_the_previous_card()
     {
         var deck = NoteReadingDeck.Build(new NoteReadingOptions());
-        var picker = new CardPicker(deck, new NoteReadingStats(), new Random(1));
+        var picker = new WeightedPicker<NoteCard>(deck, c => c.Id, new ExerciseStats(), new Random(1));
         var previous = picker.Next(null);
         for (var i = 0; i < 500; i++)
         {
@@ -155,10 +156,10 @@ public class CardPickerTests
 
 public class NoteReadingSessionTests
 {
-    private static (NoteReadingSession Session, FakeTime Time, NoteReadingStatsStore Store) Start(NoteReadingOptions? options = null)
+    private static (NoteReadingSession Session, FakeTime Time, ExerciseStatsStore Store) Start(NoteReadingOptions? options = null)
     {
         var time = new FakeTime();
-        var store = new NoteReadingStatsStore(folder: null);
+        var store = ExerciseStatsStore.InMemory();
         return (new NoteReadingSession(options ?? new NoteReadingOptions { CardsPerSession = 3 }, store, new Random(7), time), time, store);
     }
 
@@ -171,7 +172,7 @@ public class NoteReadingSessionTests
         Assert.Equal(AnswerOutcome.Correct, session.Answer(session.Current.Pitch.Pitch));
         Assert.Equal(1, session.CorrectCount);
         Assert.Equal(1200, session.LastAnswerTime.TotalMilliseconds, precision: 3);
-        Assert.Equal(1, store.Data.For(session.Current)!.Correct);
+        Assert.Equal(1, store.Data.For(session.Current.Id)!.Correct);
     }
 
     [Fact]
@@ -187,7 +188,7 @@ public class NoteReadingSessionTests
 
         Assert.Equal(0, session.CorrectCount);
         Assert.Equal(1, session.AnsweredCount);
-        var stats = store.Data.For(session.Current)!;
+        var stats = store.Data.For(session.Current.Id)!;
         Assert.Equal((1, 0), (stats.Attempts, stats.Correct));
     }
 

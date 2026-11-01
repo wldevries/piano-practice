@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
 using PianoPractice.App.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using PianoPractice.Core.Exercises;
 using PianoPractice.Core.Exercises.NoteReading;
 using PianoPractice.Core.Midi;
 using PianoPractice.Core.Settings;
@@ -20,7 +22,7 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
 
     private readonly IMidiService _midi;
     private readonly SettingsStore _settings;
-    private readonly NoteReadingStatsStore _stats;
+    private readonly ExerciseStatsStore _stats;
     private readonly DispatcherQueue _dispatcher = DispatcherQueue.GetForCurrentThread();
     private readonly Random _random = new();
 
@@ -28,7 +30,7 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
     private NoteReadingOptions _options;
     private int _advanceToken; // invalidates pending auto-advances
 
-    public NoteReadingViewModel(IMidiService midi, SettingsStore settings, NoteReadingStatsStore stats)
+    public NoteReadingViewModel(IMidiService midi, SettingsStore settings, [FromKeyedServices(StatsKeys.NoteReading)] ExerciseStatsStore stats)
     {
         _midi = midi;
         _settings = settings;
@@ -94,7 +96,7 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
     private void UpdateDeckSize()
     {
         var deck = NoteReadingDeck.Build(OptionsFromSetup());
-        var known = deck.Count(c => _stats.Data.For(c) is { Attempts: > 0 });
+        var known = deck.Count(c => _stats.Data.For(c.Id) is { Attempts: > 0 });
         DeckSizeText = $"{deck.Count} different notes · {known} practised before";
     }
 
@@ -246,7 +248,7 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
 
         // All-time accuracy per key over the cards in this note set: green = solid, red = needs work.
         var perKey = _session.Deck
-            .Select(c => (Midi: c.Pitch.Pitch.MidiNumber, Stats: _stats.Data.For(c)))
+            .Select(c => (Midi: c.Pitch.Pitch.MidiNumber, Stats: _stats.Data.For(c.Id)))
             .Where(x => x.Stats is { Attempts: > 0 })
             .GroupBy(x => x.Midi)
             .Select(g => (Midi: g.Key, Accuracy: g.Sum(x => x.Stats!.Correct) / (double)g.Sum(x => x.Stats!.Attempts)));
@@ -257,11 +259,11 @@ public sealed partial class NoteReadingViewModel : ObservableObject, IDisposable
             .ToList();
 
         TroubleNotes.Clear();
-        var reference = CardPicker.ReferenceMs(_stats.Data);
+        var reference = PracticeWeight.ReferenceMs(_stats.Data);
         var trouble = _session.Deck
-            .Select(c => (Card: c, Stats: _stats.Data.For(c)))
+            .Select(c => (Card: c, Stats: _stats.Data.For(c.Id)))
             .Where(x => x.Stats is { Attempts: > 0 })
-            .Select(x => (x.Card, x.Stats, Weight: CardPicker.Weight(x.Stats, reference)))
+            .Select(x => (x.Card, x.Stats, Weight: PracticeWeight.Of(x.Stats, reference)))
             .OrderByDescending(x => x.Weight)
             .Take(5)
             .Where(x => x.Weight > 2.5)

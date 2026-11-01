@@ -26,6 +26,11 @@ public readonly record struct Pitch(int MidiNumber) : IComparable<Pitch>
 
     public int CompareTo(Pitch other) => MidiNumber.CompareTo(other.MidiNumber);
 
+    public static bool operator <(Pitch a, Pitch b) => a.MidiNumber < b.MidiNumber;
+    public static bool operator >(Pitch a, Pitch b) => a.MidiNumber > b.MidiNumber;
+    public static bool operator <=(Pitch a, Pitch b) => a.MidiNumber <= b.MidiNumber;
+    public static bool operator >=(Pitch a, Pitch b) => a.MidiNumber >= b.MidiNumber;
+
     /// <summary>Default spelling, using sharps for black keys.</summary>
     public override string ToString() => SpelledPitch.FromPitch(this).ToString();
 }

@@ -2,10 +2,171 @@
 <Page
     x:Class="PianoPractice.App.Pages.IntervalsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:PianoPractice.App.Controls"
+    xmlns:vm="using:PianoPractice.App.ViewModels"
+    xmlns:theory="using:PianoPractice.Core.Theory"
+    Unloaded="Page_Unloaded">
 
-    <StackPanel Padding="36,24" Spacing="4">
-        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Intervals" />
-        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Ear training: hear an interval, play it back or name it. Coming in M4." />
-    </StackPanel>
+    <Grid Padding="36,24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="4">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Intervals" />
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Text="The piano plays two notes. Play them back, or name the interval." />
+        </StackPanel>
+
+        <!-- Setup -->
+        <ScrollViewer Grid.Row="1" Visibility="{x:Bind ViewModel.IsSetup, Mode=OneWay}">
+            <Grid ColumnSpacing="48">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="360" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="14">
+                    <ComboBox Header="Level" HorizontalAlignment="Stretch"
+                              ItemsSource="{x:Bind ViewModel.StageOptions}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedStageIndex, Mode=TwoWay}" />
+
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Intervals" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Choices}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:IntervalChoice">
+                                    <CheckBox Content="{x:Bind Label}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" MinHeight="28" Padding="8,4,0,0" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <ComboBox Header="Direction" HorizontalAlignment="Stretch"
+                              ItemsSource="{x:Bind ViewModel.DirectionOptions}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedDirectionIndex, Mode=TwoWay}" />
+                    <ComboBox Header="Answer" HorizontalAlignment="Stretch"
+                              ItemsSource="{x:Bind ViewModel.AnswerModeOptions}"
+                              SelectedIndex="{x:Bind ViewModel.AnswerModeIndex, Mode=TwoWay}" />
+                    <NumberBox Header="Questions per session" Minimum="5" Maximum="200" SmallChange="5" LargeChange="10"
+                               SpinButtonPlacementMode="Inline"
+                               Value="{x:Bind ViewModel.QuestionsPerSession, Mode=TwoWay}" />
+                    <Button Content="Start" Style="{StaticResource AccentButtonStyle}" MinWidth="140"
+                            IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                            Command="{x:Bind ViewModel.StartCommand}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Spacing="8">
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Recent sessions" />
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSessions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{x:Bind}" Margin="0,2" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Running -->
+        <Grid Grid.Row="1" RowSpacing="24" Visibility="{x:Bind ViewModel.IsRunning, Mode=OneWay}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{x:Bind ViewModel.ProgressText, Mode=OneWay}" VerticalAlignment="Center"
+                           Style="{StaticResource BodyStrongTextBlockStyle}" />
+                <ProgressBar Grid.Column="1" Value="{x:Bind ViewModel.Progress, Mode=OneWay}" VerticalAlignment="Center" />
+                <Button Grid.Column="2" Command="{x:Bind ViewModel.ReplayCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <SymbolIcon Symbol="RepeatAll" />
+                        <TextBlock Text="Replay" />
+                    </StackPanel>
+                </Button>
+                <Button Grid.Column="3" Content="Skip" Command="{x:Bind ViewModel.SkipCommand}" />
+                <Button Grid.Column="4" Content="Stop" Command="{x:Bind ViewModel.StopCommand}" />
+            </Grid>
+
+            <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="14" MaxWidth="900">
+                <TextBlock Text="{x:Bind ViewModel.PromptText, Mode=OneWay}" HorizontalAlignment="Center"
+                           Style="{StaticResource TitleTextBlockStyle}" />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.AnswerChoices, Mode=OneWay}" HorizontalAlignment="Center"
+                              Visibility="{x:Bind ViewModel.AreNameButtonsVisible, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="6" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="theory:IntervalInfo">
+                            <Button Margin="4" MinWidth="128" MinHeight="56" Tag="{x:Bind Semitones}" Click="NameButton_Click">
+                                <StackPanel>
+                                    <TextBlock Text="{x:Bind Short}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                    <TextBlock Text="{x:Bind Name}" FontSize="12" HorizontalAlignment="Center"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{x:Bind ViewModel.FeedbackText, Mode=OneWay}" HorizontalAlignment="Center" TextWrapping="Wrap"
+                           Style="{StaticResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="{x:Bind ViewModel.HintText, Mode=OneWay}" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{x:Bind ViewModel.ScoreText, Mode=OneWay}" HorizontalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Summary -->
+        <Grid Grid.Row="1" ColumnSpacing="48" Visibility="{x:Bind ViewModel.IsSummary, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Spacing="8" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind ViewModel.SummaryAccuracy, Mode=OneWay}" FontSize="64" FontWeight="SemiBold" />
+                <TextBlock Text="right first time" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Text="{x:Bind ViewModel.SummaryDetail, Mode=OneWay}" Margin="0,8,0,0" TextWrapping="Wrap" MaxWidth="480"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                    <Button Content="Again" Style="{StaticResource AccentButtonStyle}" MinWidth="120"
+                            Command="{x:Bind ViewModel.AgainCommand}" />
+                    <Button Content="Change settings" Command="{x:Bind ViewModel.BackToSetupCommand}" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Per interval (all sessions, weakest first)" />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.PerInterval}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                            <TextBlock Text="{x:Bind}" Margin="0,2" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Grid>
+
+        <controls:PianoKeyboard
+            Grid.Row="2"
+            Visibility="{x:Bind ViewModel.IsKeyboardVisible, Mode=OneWay}"
+            Highlights="{x:Bind ViewModel.Highlights, Mode=OneWay}"
+            KeyPressed="Keyboard_KeyPressed"
+            KeyReleased="Keyboard_KeyReleased" />
+    </Grid>
 </Page>

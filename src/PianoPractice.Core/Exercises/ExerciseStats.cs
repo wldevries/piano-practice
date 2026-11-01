@@ -1,8 +1,8 @@
 using System.Text.Json;
 
-namespace PianoPractice.Core.Exercises.NoteReading;
+namespace PianoPractice.Core.Exercises;
 
-/// <summary>All-time results for one card.</summary>
+/// <summary>All-time results for one practice item (a note card, an interval, ...).</summary>
 public sealed class CardStats
 {
     public int Attempts { get; set; }
@@ -15,6 +15,8 @@ public sealed class CardStats
 
     /// <summary>Accuracy with a gentle prior (one right, one wrong) so a single answer doesn't swing it to 0 or 100%.</summary>
     public double SmoothedAccuracy => (Correct + 1.0) / (Attempts + 2.0);
+
+    public double Accuracy => Attempts == 0 ? 0 : (double)Correct / Attempts;
 
     public void Record(bool correct, double ms, DateTimeOffset now)
     {
@@ -35,39 +37,45 @@ public sealed record SessionSummary(
     public double Accuracy => Cards == 0 ? 0 : (double)Correct / Cards;
 }
 
-public sealed class NoteReadingStats
+/// <summary>Per-item statistics and session history of one exercise.</summary>
+public sealed class ExerciseStats
 {
+    /// <summary>Stats per item id. (Named "Cards" for compatibility with the first stats files.)</summary>
     public Dictionary<string, CardStats> Cards { get; set; } = new();
+
     public List<SessionSummary> Sessions { get; set; } = new();
 
-    public CardStats? For(NoteCard card) => Cards.GetValueOrDefault(card.Id);
+    public CardStats? For(string id) => Cards.GetValueOrDefault(id);
 
-    public CardStats GetOrAdd(NoteCard card)
+    public CardStats GetOrAdd(string id)
     {
-        if (!Cards.TryGetValue(card.Id, out var stats))
+        if (!Cards.TryGetValue(id, out var stats))
         {
             stats = new CardStats();
-            Cards[card.Id] = stats;
+            Cards[id] = stats;
         }
         return stats;
     }
 }
 
-/// <summary>Persists <see cref="NoteReadingStats"/> as JSON.</summary>
-public sealed class NoteReadingStatsStore
+/// <summary>Persists <see cref="ExerciseStats"/> as JSON, one file per exercise.</summary>
+public sealed class ExerciseStatsStore
 {
     private const int MaxSessions = 500;
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private readonly string? _path;
 
     /// <param name="folder">Where to keep the file; null keeps everything in memory (tests).</param>
-    public NoteReadingStatsStore(string? folder)
+    /// <param name="fileName">e.g. "note-reading-stats.json".</param>
+    public ExerciseStatsStore(string? folder, string fileName)
     {
-        _path = folder is null ? null : Path.Combine(folder, "note-reading-stats.json");
+        _path = folder is null ? null : Path.Combine(folder, fileName);
         Data = Load();
     }
 
-    public NoteReadingStats Data { get; }
+    public static ExerciseStatsStore InMemory() => new(null, "");
+
+    public ExerciseStats Data { get; }
 
     public void AddSession(SessionSummary summary)
     {
@@ -83,18 +91,18 @@ public sealed class NoteReadingStatsStore
         File.WriteAllText(_path, JsonSerializer.Serialize(Data, JsonOptions));
     }
 
-    private NoteReadingStats Load()
+    private ExerciseStats Load()
     {
-        if (_path is null || !File.Exists(_path)) return new NoteReadingStats();
+        if (_path is null || !File.Exists(_path)) return new ExerciseStats();
         try
         {
-            return JsonSerializer.Deserialize<NoteReadingStats>(File.ReadAllText(_path)) ?? new NoteReadingStats();
+            return JsonSerializer.Deserialize<ExerciseStats>(File.ReadAllText(_path)) ?? new ExerciseStats();
         }
         catch (JsonException)
         {
             // Keep the broken file for inspection rather than silently overwriting it later.
             File.Move(_path, _path + ".broken", overwrite: true);
-            return new NoteReadingStats();
+            return new ExerciseStats();
         }
     }
 }

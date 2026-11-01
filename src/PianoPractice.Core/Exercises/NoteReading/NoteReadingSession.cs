@@ -2,40 +2,30 @@ using PianoPractice.Core.Theory;
 
 namespace PianoPractice.Core.Exercises.NoteReading;
 
-public enum CardState
-{
-    /// <summary>Waiting for the first answer.</summary>
-    Waiting,
-    /// <summary>Answered correctly (first try, or after a retry).</summary>
-    Correct,
-    /// <summary>First answer was wrong; waiting for the right note before moving on.</summary>
-    Wrong,
-}
-
-public enum AnswerOutcome { Ignored, Correct, Wrong, RetryCorrect, RetryWrong }
-
 /// <summary>
 /// One run of flashcards. Only the first answer to a card is scored; after a wrong answer
 /// the player has to find the right key before moving on (unscored), which reinforces it.
 /// </summary>
 public sealed class NoteReadingSession
 {
+    public const string StatsFileName = "note-reading-stats.json";
+
     private readonly NoteReadingOptions _options;
-    private readonly CardPicker _picker;
-    private readonly NoteReadingStatsStore _store;
+    private readonly WeightedPicker<NoteCard> _picker;
+    private readonly ExerciseStatsStore _store;
     private readonly TimeProvider _time;
     private readonly DateTimeOffset _started;
     private readonly List<double> _answerTimes = [];
     private long _shownAt;
 
-    public NoteReadingSession(NoteReadingOptions options, NoteReadingStatsStore store, Random random, TimeProvider time)
+    public NoteReadingSession(NoteReadingOptions options, ExerciseStatsStore store, Random random, TimeProvider time)
     {
         _options = options;
         _store = store;
         _time = time;
         _started = time.GetUtcNow();
         Deck = NoteReadingDeck.Build(options);
-        _picker = new CardPicker(Deck, store.Data, random);
+        _picker = new WeightedPicker<NoteCard>(Deck, c => c.Id, store.Data, random);
         Current = _picker.Next(null);
         _shownAt = time.GetTimestamp();
     }
@@ -68,7 +58,7 @@ public sealed class NoteReadingSession
                 LastAnswerTime = _time.GetElapsedTime(_shownAt);
                 var correct = Matches(played);
                 _answerTimes.Add(LastAnswerTime.TotalMilliseconds);
-                _store.Data.GetOrAdd(Current).Record(correct, LastAnswerTime.TotalMilliseconds, _time.GetUtcNow());
+                _store.Data.GetOrAdd(Current.Id).Record(correct, LastAnswerTime.TotalMilliseconds, _time.GetUtcNow());
                 if (correct)
                 {
                     CorrectCount++;

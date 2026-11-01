@@ -72,7 +72,7 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Session summary showing accuracy and average time, with a per-note heatmap on the keyboard.
 - **Done when:** a five-minute session runs end to end and the stats are saved.
 
-### M4: Interval ear training
+### M4: Interval ear training ✅
 - The FP-10 plays an interval (ascending, descending or harmonic) from a random root.
 - Two answer modes: **play it back** (judged on the piano) or **name it** (buttons m2 … P8).
 - Choose which intervals are in the pool, with presets that progress: P5/P8 → add M3/P4 → all.
