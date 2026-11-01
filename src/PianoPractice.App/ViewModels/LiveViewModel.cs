@@ -22,7 +22,17 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
         _midi = midi;
         _midi.NoteReceived += OnNoteReceived;
         _midi.SustainChanged += OnSustainChanged;
+        _midi.ConnectionChanged += OnConnectionChanged;
     }
+
+    /// <summary>Unplugged mid-note: the note-offs will never arrive, so drop what was held.</summary>
+    private void OnConnectionChanged(object? sender, EventArgs e) => _dispatcher.TryEnqueue(() =>
+    {
+        if (_midi.IsInputConnected || _pianoHeld.Count == 0 && !IsSustainOn) return;
+        _pianoHeld.Clear();
+        IsSustainOn = false;
+        Refresh();
+    });
 
     [ObservableProperty]
     public partial IReadOnlyCollection<KeyHighlight> Highlights { get; set; } = [];
@@ -83,6 +93,7 @@ public sealed partial class LiveViewModel : ObservableObject, IDisposable
     {
         _midi.NoteReceived -= OnNoteReceived;
         _midi.SustainChanged -= OnSustainChanged;
+        _midi.ConnectionChanged -= OnConnectionChanged;
         foreach (var midi in _screenHeld) _midi.NoteOff(new Pitch(midi));
         _screenHeld.Clear();
     }
