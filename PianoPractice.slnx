@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PianoPractice.App/PianoPractice.App.csproj" />
+    <Project Path="src/PianoPractice.Core/PianoPractice.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PianoPractice.Core.Tests/PianoPractice.Core.Tests.csproj" />
+  </Folder>
+</Solution>

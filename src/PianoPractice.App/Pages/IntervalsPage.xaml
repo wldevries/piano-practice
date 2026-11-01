@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PianoPractice.App.Pages.IntervalsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Padding="36,24" Spacing="4">
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Intervals" />
+        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Ear training: hear an interval, play it back or name it. Coming in M4." />
+    </StackPanel>
+</Page>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="PianoPractice.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Piano Practice">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <NavigationView
+        x:Name="Nav"
+        IsBackButtonVisible="Collapsed"
+        PaneDisplayMode="Left"
+        SelectionChanged="Nav_SelectionChanged">
+
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Live" Tag="Live" Icon="Audio" />
+            <NavigationViewItem Content="Note reading" Tag="NoteReading" Icon="Read" />
+            <NavigationViewItem Content="Intervals" Tag="Intervals" Icon="Volume" />
+            <NavigationViewItem Content="Play-along" Tag="PlayAlong" Icon="Play" />
+        </NavigationView.MenuItems>
+
+        <Frame x:Name="ContentFrame" />
+    </NavigationView>
+</Window>

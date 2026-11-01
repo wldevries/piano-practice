@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PianoPractice.App.Pages.LivePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    Unloaded="Page_Unloaded"
+    ActualThemeChanged="Page_ActualThemeChanged">
+
+    <Grid Padding="36,24" RowSpacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Spacing="4">
+            <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Live" />
+            <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       Text="Play anything and see it on the keyboard and staff. MIDI input arrives in M1." />
+        </StackPanel>
+
+        <canvas:CanvasControl x:Name="StaffCanvas" Grid.Row="1" Draw="StaffCanvas_Draw" />
+    </Grid>
+</Page>

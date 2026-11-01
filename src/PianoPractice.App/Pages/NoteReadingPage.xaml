@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="PianoPractice.App.Pages.NoteReadingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Padding="36,24" Spacing="4">
+        <TextBlock Style="{StaticResource TitleTextBlockStyle}" Text="Note reading" />
+        <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Flashcards: read a note on the staff and play it. Coming in M3." />
+    </StackPanel>
+</Page>
