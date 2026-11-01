@@ -93,10 +93,17 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Melody dictation, chord-quality ear training, rhythm drills
 - Built-in SoundFont synth (MeltySynth) for practising without the piano connected
 - Practice history and streaks dashboard
-- Bluetooth MIDI: the piano can't sit next to the PC, so a cable isn't ideal. Windows' built-in BLE pairing of the FP-10 didn't work, so Wouter removed it. To evaluate: [Perfect-Bluetooth-MIDI-For-Windows](https://github.com/mayerwin/Perfect-Bluetooth-MIDI-For-Windows). It connects to the piano over Bluetooth itself and publishes a Windows MIDI Services virtual port (default name "BT-MIDI Bridge"), because (per its README) WMS had no stable BLE transport. The port should show up for DryWetMIDI. Its default name is now matched by `DryWetMidiService.LooksLikePiano`. Check latency against USB.
-  - Alternative: implement BLE MIDI in this app with `Windows.Devices.Bluetooth` (MIDI GATT service `03B80E5A-EDE8-4B33-A751-6CE34EC4C700`). That means scan, connect, subscribe to notifications and parse BLE MIDI packets, roughly a few hundred lines behind `IMidiService`.
-  - Windows MIDI Services itself has a **BLE MIDI 1.0 transport in its preview releases** (microsoft/MIDI releases: "Bluetooth LE MIDI 1.0 transports" in Preview 10; an earlier preview fixed WinMM apps not seeing BLE data). The previews are unsigned, need Developer Mode and Windows 11 25H2. The "FP-10 (Bluetooth MIDI IN/OUT)" devices seen on 2026-11-01 were probably this; it didn't work then, so retry with the latest preview. If it works, the FP-10 shows up as a normal WinMM port and this app needs no changes.
-  - The WMS SDK (`Microsoft.Windows.Devices.Midi2`) is the modern MIDI API (multi-client, MIDI 2.0). It's an option to replace DryWetMIDI's WinMM device layer later, but it isn't needed for BLE.
+- Measure Bluetooth latency against USB. It matters for timing scores in M5 flow mode.
+- Optional: replace DryWetMIDI's WinMM device layer with the Windows MIDI Services SDK (`Microsoft.Windows.Devices.Midi2`: multi-client, MIDI 2.0, richer device info). Not needed for anything so far.
+
+## Bluetooth MIDI ✅ (2026-11-01)
+The piano can't sit next to the PC, so it connects over Bluetooth. What works:
+1. **Don't** pair the FP-10 in Windows Settings (the old in-box BLE stack didn't work).
+2. Install Windows MIDI Services **Preview 13** Tools + Transports from https://github.com/microsoft/MIDI/releases. It has a BLE MIDI 1.0 transport.
+3. Connect the FP-10 once in **Windows MIDI Bluetooth Setup**. The MIDI service keeps the connection and reconnects, also after a reboot.
+4. The FP-10 then shows up as an ordinary MIDI port named **"FP-10"** (USB shows up as "Roland Digital Piano"). Auto-detect matches both; no app code was needed.
+
+Fallbacks if the preview breaks: the [Perfect-Bluetooth-MIDI-For-Windows](https://github.com/mayerwin/Perfect-Bluetooth-MIDI-For-Windows) bridge (port "BT-MIDI Bridge", also auto-detected), or BLE MIDI in-app via `Windows.Devices.Bluetooth` (GATT service `03B80E5A-EDE8-4B33-A751-6CE34EC4C700`).
 
 ## Risks and open questions
 - **MIDI file quality:** many free MIDI files have messy tracks. Keep a small curated set of known-good files for testing M5.
