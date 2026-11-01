@@ -135,7 +135,7 @@ public sealed class DryWetMidiService : IMidiService
             }
             if (_output is not null && !outputs.Contains(OutputName!))
             {
-                CloseOutput();
+                CloseOutput(silence: false); // device is gone; don't send it anything
                 changed = true;
             }
 
@@ -204,10 +204,10 @@ public sealed class DryWetMidiService : IMidiService
         InputName = null;
     }
 
-    private void CloseOutput()
+    private void CloseOutput(bool silence = true)
     {
         if (_output is null) return;
-        try { _output.TurnAllNotesOff(); } catch (MidiDeviceException) { /* already gone */ }
+        if (silence) SendAllNotesOff();
         _output.Dispose();
         _output = null;
         OutputName = null;
@@ -253,10 +253,22 @@ public sealed class DryWetMidiService : IMidiService
 
     public void AllNotesOff()
     {
-        lock (_gate)
+        lock (_gate) SendAllNotesOff();
+    }
+
+    /// <summary>
+    /// Silences the notes this app may have started. Deliberately NOT OutputDevice.TurnAllNotesOff():
+    /// that sends a note-off for all 128 notes on all 16 channels (2048 messages), which floods a
+    /// Bluetooth MIDI link for seconds. We only ever play on channel 1, so one "All Notes Off"
+    /// (CC 123) there is enough.
+    /// </summary>
+    private void SendAllNotesOff()
+    {
+        try
         {
-            try { _output?.TurnAllNotesOff(); } catch (MidiDeviceException) { /* device gone */ }
+            _output?.SendEvent(new ControlChangeEvent((SevenBitNumber)123, (SevenBitNumber)0));
         }
+        catch (MidiDeviceException) { /* device gone */ }
     }
 
     private void Send(MidiEvent midiEvent)
