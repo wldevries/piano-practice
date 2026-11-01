@@ -18,6 +18,11 @@ public sealed partial class IntervalsPage : Page
         if (sender is Button { Tag: int semitones }) ViewModel.AnswerName(semitones);
     }
 
+    private void ExploreButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: int semitones }) ViewModel.Explore(semitones);
+    }
+
     private void Keyboard_KeyPressed(object? sender, int midi) => ViewModel.ScreenKeyDown(midi);
     private void Keyboard_KeyReleased(object? sender, int midi) => ViewModel.ScreenKeyUp(midi);
 

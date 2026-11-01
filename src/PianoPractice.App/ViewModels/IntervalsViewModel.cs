@@ -73,7 +73,8 @@ public sealed partial class IntervalsViewModel : ObservableObject, IDisposable
     public bool IsSetup => Phase == IntervalsPhase.Setup;
     public bool IsRunning => Phase == IntervalsPhase.Running;
     public bool IsSummary => Phase == IntervalsPhase.Summary;
-    public bool IsKeyboardVisible => Phase == IntervalsPhase.Running;
+    /// <summary>Keyboard while practising, and on the setup screen once an interval is being explained.</summary>
+    public bool IsKeyboardVisible => IsRunning || (IsSetup && HasExplored);
     public bool AreNameButtonsVisible => IsRunning && IsNameMode;
 
     #endregion
@@ -140,6 +141,53 @@ public sealed partial class IntervalsViewModel : ObservableObject, IDisposable
         }
         if (RecentSessions.Count == 0) RecentSessions.Add("No sessions yet.");
     }
+
+    #region Learn
+
+    public IReadOnlyList<IntervalInfo> AllIntervals => IntervalCatalog.All;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsKeyboardVisible))]
+    public partial bool HasExplored { get; set; }
+    [ObservableProperty] public partial string ExploreTitle { get; set; } = "";
+    [ObservableProperty] public partial string ExploreText { get; set; } = "";
+    [ObservableProperty] public partial string ExploreHint { get; set; } = "";
+    [ObservableProperty] public partial IReadOnlyList<StaffNote> ExploreStaffNotes { get; set; } = [];
+
+    /// <summary>Shows and plays an interval from middle C: one note after the other, then together.</summary>
+    public async void Explore(int semitones)
+    {
+        var info = IntervalCatalog.Get(semitones);
+        var top = IntervalCatalog.AboveMiddleC(semitones);
+        var root = Pitch.MiddleC;
+
+        HasExplored = true;
+        ExploreTitle = $"{info.Short}  ·  {info.Name}";
+        ExploreText = IntervalCatalog.Explain(semitones);
+        ExploreHint = $"Up: “{info.AscendingSong}”   ·   Down: “{info.DescendingSong}”";
+        ExploreStaffNotes = [new StaffNote(new SpelledPitch(Letter.C, 0, 4)), new StaffNote(top)];
+        Highlights =
+        [
+            new KeyHighlight(root.MidiNumber, KeyHighlightKind.Sounded),
+            .. Enumerable.Range(root.MidiNumber + 1, semitones - 1).Select(m => new KeyHighlight(m, KeyHighlightKind.Range, 0)),
+            new KeyHighlight(top.Pitch.MidiNumber, KeyHighlightKind.Sounded),
+        ];
+
+        _playback?.Cancel();
+        var cts = _playback = new CancellationTokenSource();
+        try
+        {
+            await IntervalPlayer.PlayAsync(_midi, new IntervalQuestion(new IntervalItem(IntervalDirection.Ascending, semitones), root), cts.Token);
+            await Task.Delay(250, cts.Token);
+            await IntervalPlayer.PlayAsync(_midi, new IntervalQuestion(new IntervalItem(IntervalDirection.Harmonic, semitones), root), cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // Another interval was clicked, or the page was left.
+        }
+    }
+
+    #endregion
 
     [RelayCommand]
     private void Start()

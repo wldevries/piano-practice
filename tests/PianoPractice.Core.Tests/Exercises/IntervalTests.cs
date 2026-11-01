@@ -22,6 +22,25 @@ public class IntervalTests
     }
 
     [Fact]
+    public void Intervals_above_middle_c_are_spelled_conventionally_and_have_the_right_size()
+    {
+        Assert.Equal(["Db4", "D4", "Eb4", "E4", "F4", "F#4", "G4", "Ab4", "A4", "Bb4", "B4", "C5"],
+            IntervalCatalog.All.Select(i => IntervalCatalog.AboveMiddleC(i.Semitones).ToString()));
+        foreach (var i in IntervalCatalog.All)
+        {
+            Assert.Equal(60 + i.Semitones, IntervalCatalog.AboveMiddleC(i.Semitones).Pitch.MidiNumber);
+        }
+    }
+
+    [Fact]
+    public void Explanation_counts_half_steps_and_letters()
+    {
+        Assert.Equal("7 half steps  ·  C → G  ·  letters C D E F G", IntervalCatalog.Explain(7));
+        Assert.Equal("3 half steps  ·  C → E♭  ·  letters C D E", IntervalCatalog.Explain(3));
+        Assert.Equal("12 half steps  ·  C → C  ·  letters C D E F G A B C", IntervalCatalog.Explain(12));
+    }
+
+    [Fact]
     public void Mixed_direction_practises_every_interval_in_every_direction()
     {
         var (session, _, _) = Start(new IntervalOptions { Intervals = [7, 12], Direction = DirectionChoice.Mixed });

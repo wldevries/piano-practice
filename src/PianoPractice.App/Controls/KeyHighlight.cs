@@ -9,6 +9,8 @@ public enum KeyHighlightKind
     Correct,
     Wrong,
     Hint,
+    /// <summary>Keys in between, e.g. the half steps of an interval being explained.</summary>
+    Range,
 }
 
 /// <summary>A key to colour on the <see cref="PianoKeyboard"/>. Intensity 0..1 (e.g. velocity).</summary>

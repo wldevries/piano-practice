@@ -99,6 +99,7 @@ public sealed partial class PianoKeyboard : UserControl
         KeyHighlightKind.Sounded => Color.FromArgb(255, 245, 158, 11),  // amber
         KeyHighlightKind.Correct => Color.FromArgb(255, 34, 197, 94),   // green
         KeyHighlightKind.Wrong => Color.FromArgb(255, 239, 68, 68),     // red
+        KeyHighlightKind.Range => Color.FromArgb(255, 148, 163, 184),   // slate
         _ => Color.FromArgb(255, 168, 85, 247),                          // purple hint
     };
 

@@ -33,6 +33,25 @@
                     <ComboBox Header="Level" HorizontalAlignment="Stretch"
                               ItemsSource="{x:Bind ViewModel.StageOptions}"
                               SelectedIndex="{x:Bind ViewModel.SelectedStageIndex, Mode=TwoWay}" />
+                    <ComboBox Header="Direction" HorizontalAlignment="Stretch"
+                              ItemsSource="{x:Bind ViewModel.DirectionOptions}"
+                              SelectedIndex="{x:Bind ViewModel.SelectedDirectionIndex, Mode=TwoWay}" />
+                    <ComboBox Header="Answer" HorizontalAlignment="Stretch"
+                              ItemsSource="{x:Bind ViewModel.AnswerModeOptions}"
+                              SelectedIndex="{x:Bind ViewModel.AnswerModeIndex, Mode=TwoWay}" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <NumberBox Header="Questions" Minimum="5" Maximum="200" SmallChange="5" LargeChange="10"
+                                   SpinButtonPlacementMode="Inline"
+                                   Value="{x:Bind ViewModel.QuestionsPerSession, Mode=TwoWay}" />
+                        <Button Grid.Column="1" Content="Start" Style="{StaticResource AccentButtonStyle}" MinWidth="120"
+                                VerticalAlignment="Bottom"
+                                IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
+                                Command="{x:Bind ViewModel.StartCommand}" />
+                    </Grid>
 
                     <StackPanel Spacing="2">
                         <TextBlock Text="Intervals" Margin="0,0,0,4" />
@@ -44,23 +63,47 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </StackPanel>
-
-                    <ComboBox Header="Direction" HorizontalAlignment="Stretch"
-                              ItemsSource="{x:Bind ViewModel.DirectionOptions}"
-                              SelectedIndex="{x:Bind ViewModel.SelectedDirectionIndex, Mode=TwoWay}" />
-                    <ComboBox Header="Answer" HorizontalAlignment="Stretch"
-                              ItemsSource="{x:Bind ViewModel.AnswerModeOptions}"
-                              SelectedIndex="{x:Bind ViewModel.AnswerModeIndex, Mode=TwoWay}" />
-                    <NumberBox Header="Questions per session" Minimum="5" Maximum="200" SmallChange="5" LargeChange="10"
-                               SpinButtonPlacementMode="Inline"
-                               Value="{x:Bind ViewModel.QuestionsPerSession, Mode=TwoWay}" />
-                    <Button Content="Start" Style="{StaticResource AccentButtonStyle}" MinWidth="140"
-                            IsEnabled="{x:Bind ViewModel.CanStart, Mode=OneWay}"
-                            Command="{x:Bind ViewModel.StartCommand}" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Spacing="8">
-                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Recent sessions" />
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Learn the intervals" />
+                    <TextBlock TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               Text="An interval is the distance between two notes, counted in half steps: every key, black or white. The number (3rd, 5th) counts letter names including both ends; major, minor and perfect tell the exact size. Click one to hear and see it from middle C." />
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.AllIntervals}" HorizontalAlignment="Left">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="6" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="theory:IntervalInfo">
+                                <Button Margin="3" MinWidth="96" Tag="{x:Bind Semitones}" Click="ExploreButton_Click">
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind Short}" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                                        <TextBlock Text="{x:Bind Name}" FontSize="11" HorizontalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnSpacing="16" Visibility="{x:Bind ViewModel.HasExplored, Mode=OneWay}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="260" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <controls:GrandStaff Height="260" Notes="{x:Bind ViewModel.ExploreStaffNotes, Mode=OneWay}" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                            <TextBlock Text="{x:Bind ViewModel.ExploreTitle, Mode=OneWay}" Style="{StaticResource SubtitleTextBlockStyle}" />
+                            <TextBlock Text="{x:Bind ViewModel.ExploreText, Mode=OneWay}" TextWrapping="Wrap" />
+                            <TextBlock Text="{x:Bind ViewModel.ExploreHint, Mode=OneWay}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="Recent sessions" Margin="0,16,0,0" />
                     <ItemsControl ItemsSource="{x:Bind ViewModel.RecentSessions}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="x:String">

@@ -21,6 +21,30 @@ public static class IntervalCatalog
         new(12, "P8", "Octave", "Somewhere Over the Rainbow", "Willow Weep for Me"),
     ];
 
+    // Conventional spelling of each interval above C: minor intervals use flats, the tritone F#.
+    private static readonly (Letter Letter, int Accidental)[] AboveC =
+    [
+        (Letter.D, -1), (Letter.D, 0), (Letter.E, -1), (Letter.E, 0), (Letter.F, 0), (Letter.F, 1),
+        (Letter.G, 0), (Letter.A, -1), (Letter.A, 0), (Letter.B, -1), (Letter.B, 0), (Letter.C, 0),
+    ];
+
+    /// <summary>The upper note of an interval starting on middle C, spelled as in a textbook (C→E♭ for a minor 3rd).</summary>
+    public static SpelledPitch AboveMiddleC(int semitones)
+    {
+        var (letter, accidental) = AboveC[Get(semitones).Semitones - 1];
+        return new SpelledPitch(letter, accidental, semitones == 12 ? 5 : 4);
+    }
+
+    /// <summary>One-line explanation for beginners, e.g. "7 half steps · C → G · 5 letter names (C D E F G)".</summary>
+    public static string Explain(int semitones)
+    {
+        var top = AboveMiddleC(semitones);
+        var letters = Enumerable.Range(0, top.DiatonicIndex - new SpelledPitch(Letter.C, 0, 4).DiatonicIndex + 1)
+            .Select(i => ((Letter)(i % 7)).ToString());
+        var topName = top.Letter + top.AccidentalSymbol.Replace("b", "♭").Replace("#", "♯");
+        return $"{semitones} half step{(semitones == 1 ? "" : "s")}  ·  C → {topName}  ·  letters {string.Join(" ", letters)}";
+    }
+
     public static IntervalInfo Get(int semitones) =>
         All.FirstOrDefault(i => i.Semitones == semitones)
         ?? throw new ArgumentOutOfRangeException(nameof(semitones), "Only simple intervals (1..12 semitones) are supported.");
