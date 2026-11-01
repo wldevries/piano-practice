@@ -22,6 +22,18 @@
             <NavigationViewItem Content="Play-along" Tag="PlayAlong" Icon="Play" />
         </NavigationView.MenuItems>
 
+        <NavigationView.PaneFooter>
+            <StackPanel Orientation="Horizontal" Spacing="10" Padding="16,8"
+                        ToolTipService.ToolTip="{x:Bind Shell.StatusText, Mode=OneWay}">
+                <Ellipse Width="10" Height="10" VerticalAlignment="Center"
+                         Fill="{x:Bind StatusBrush(Shell.IsConnected), Mode=OneWay}" />
+                <TextBlock Text="{x:Bind Shell.StatusText, Mode=OneWay}"
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </NavigationView.PaneFooter>
+
         <Frame x:Name="ContentFrame" />
     </NavigationView>
 </Window>

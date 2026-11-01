@@ -93,7 +93,9 @@ Rule: everything musical (theory, exercise state, scoring) lives in Core and get
 - Melody dictation, chord-quality ear training, rhythm drills
 - Built-in SoundFont synth (MeltySynth) for practising without the piano connected
 - Practice history and streaks dashboard
-- Bluetooth MIDI (depends on Windows MIDI Services)
+- Bluetooth MIDI: the piano can't sit next to the PC, so a cable isn't ideal. Windows' built-in BLE pairing of the FP-10 didn't work, so Wouter removed it. To evaluate: [Perfect-Bluetooth-MIDI-For-Windows](https://github.com/mayerwin/Perfect-Bluetooth-MIDI-For-Windows). It connects to the piano over Bluetooth itself and publishes a Windows MIDI Services virtual port (default name "BT-MIDI Bridge"), because WMS doesn't have a native BLE MIDI transport yet. The port should show up for DryWetMIDI. Its default name is now matched by `DryWetMidiService.LooksLikePiano`. Check latency against USB.
+  - Alternative: implement BLE MIDI in this app with `Windows.Devices.Bluetooth` (MIDI GATT service `03B80E5A-EDE8-4B33-A751-6CE34EC4C700`). That means scan, connect, subscribe to notifications and parse BLE MIDI packets, roughly a few hundred lines behind `IMidiService`.
+  - The Windows MIDI Services SDK (`Microsoft.Windows.Devices.Midi2`) is the modern MIDI API (multi-client, MIDI 2.0). It doesn't help with BLE until WMS gets a BLE transport. It's an option to replace DryWetMIDI's WinMM device layer later.
 
 ## Risks and open questions
 - **MIDI file quality:** many free MIDI files have messy tracks. Keep a small curated set of known-good files for testing M5.
